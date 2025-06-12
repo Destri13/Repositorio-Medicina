@@ -46,8 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const pathForViewer = `../../${result.url}`;
                     const encodedPdfUrl = encodeURIComponent(pathForViewer);
+                    
+                    // --- INICIO DEL CAMBIO FINAL ---
+                    // 
+                    const encodedQuery = encodeURIComponent(query);
+                    
+                    // 
+                    pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#search=${encodedQuery}&page=${result.pageNumber}`;
+                    // --- FIN DEL CAMBIO FINAL ---
 
-                    pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#page=${result.pageNumber}`;
                     pageLink.target = "_blank";
                     pageLink.rel = "noopener noreferrer";
                     pageLink.textContent = `Ver página ${result.pageNumber}`;
