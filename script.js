@@ -34,37 +34,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buscar y mostrar resultados
     function performSearch() {
-        const query = searchInput.value.toLowerCase().trim();
-        searchResultsDiv.innerHTML = '';
-        noResultsMessage.style.display = 'none';
-
-        if (query.length === 0) {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) {
+            searchResultsDiv.innerHTML = '';
+            noResultsMessage.style.display = 'none';
             return;
         }
 
-        let foundResults = false;
-        const results = [];
+        loadingMessage.style.display = 'none';
+        searchResultsDiv.innerHTML = '';
+        noResultsMessage.style.display = 'none';
 
-        for (const pdfFilename in searchIndex) {
-            const pdfData = searchIndex[pdfFilename];
-            const pdfUrl = pdfData.url;
+        let results = [];
+        const searchTerms = query.split(/\s+/).filter(term => term.length > 0);
 
-            for (const pageKey in pdfData.pages) {
-                const pageText = pdfData.pages[pageKey].toLowerCase();
-                const pageNumber = pageKey.replace('page_', '');
-
-                if (pageText.includes(query)) {
-                    foundResults = true;
+        for (const filename in searchIndex) {
+            const fileData = searchIndex[filename];
+            for (const pageNum in fileData.pages) {
+                const pageText = fileData.pages[pageNum].toLowerCase();
+                if (searchTerms.every(term => pageText.includes(term))) {
                     results.push({
-                        filename: pdfFilename,
-                        url: pdfUrl,
-                        pageNumber: pageNumber,
+                        filename: filename,
+                        url: fileData.url,
+                        pageNumber: pageNum.replace('page_', '')
                     });
                 }
             }
         }
-
-        // Ordenar resultados
+        
         results.sort((a, b) => {
             if (a.filename !== b.filename) {
                 return a.filename.localeCompare(b.filename);
@@ -73,6 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (results.length > 0) {
+            // La URL base de tu sitio en GitHub Pages
+            const githubPagesBaseUrl = 'https://destri13.github.io/Repositorio-Medicina/';
+
             results.forEach(result => {
                 const resultItem = document.createElement('div');
                 resultItem.classList.add('result-item');
@@ -81,7 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 newsTitle.textContent = `Noticia: ${result.filename.replace('.pdf', '').replace(/_/g, ' ')}`;
 
                 const pageLink = document.createElement('a');
-                const encodedPdfUrl = encodeURIComponent(result.url);
+
+                // --- INICIO DE LA CORRECCIÓN ---
+                
+                // 1. Corregimos la ruta eliminando la parte extra "Repositorio_Medicina/"
+                const correctedPath = result.url.replace('Repositorio_Medicina/', '');
+                
+                // 2. Creamos la URL absoluta y completa hacia el PDF en GitHub Pages
+                const absolutePdfUrl = `${githubPagesBaseUrl}${correctedPath}`;
+
+                // 3. Codificamos la URL completa para el visor
+                const encodedPdfUrl = encodeURIComponent(absolutePdfUrl);
+                
+                // --- FIN DE LA CORRECCIÓN ---
+
                 pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#page=${result.pageNumber}`;
                 pageLink.target = "_blank";
                 pageLink.rel = "noopener noreferrer";
