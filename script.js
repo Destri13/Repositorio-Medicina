@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingMessage = document.getElementById('loadingMessage');
     const noResultsMessage = document.getElementById('noResultsMessage');
 
-    let searchIndex = {}; // Índice JSON cargado
+    let searchIndex = {};
 
-    // =================================================================
-    // ESTA LÍNEA ES LA CLAVE: Ahora apunta al visor en tu proyecto
+    // Apuntamos al visor LOCAL que está dentro de tu proyecto.
     const visorBaseUrl = 'pdfjs/web/viewer.html';
-    // =================================================================
 
     // Cargar índice JSON
     async function loadSearchIndex() {
@@ -81,11 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const pageLink = document.createElement('a');
                 
-                // Corregimos la ruta eliminando la parte extra "Repositorio_Medicina/"
+                // 1. Corregimos la ruta en el JSON (quitamos "Repositorio_Medicina/")
                 const correctedPath = result.url.replace('Repositorio_Medicina/', '');
                 
-                // Codificamos la ruta relativa para pasarla al visor local.
-                const encodedPdfUrl = encodeURIComponent(correctedPath);
+                // 2. Le decimos al visor que suba dos carpetas para encontrar la ruta correcta
+                const pathForViewer = `../../${correctedPath}`;
+
+                // 3. Codificamos la ruta final para la URL
+                const encodedPdfUrl = encodeURIComponent(pathForViewer);
 
                 pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#page=${result.pageNumber}`;
                 pageLink.target = "_blank";
