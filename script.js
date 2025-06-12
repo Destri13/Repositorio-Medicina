@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let searchIndex = {}; // Índice JSON cargado
 
-    // URL base del visor en Netlify
-    const visorBaseUrl = 'https://velvety-praline-a6d785.netlify.app/pdfjs/web/viewer.html';
+    // =================================================================
+    // ESTA LÍNEA ES LA CLAVE: Ahora apunta al visor en tu proyecto
+    const visorBaseUrl = 'pdfjs/web/viewer.html';
+    // =================================================================
 
     // Cargar índice JSON
     async function loadSearchIndex() {
@@ -70,9 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (results.length > 0) {
-            // La URL base de tu sitio en GitHub Pages
-            const githubPagesBaseUrl = 'https://destri13.github.io/Repositorio-Medicina/';
-
             results.forEach(result => {
                 const resultItem = document.createElement('div');
                 resultItem.classList.add('result-item');
@@ -81,19 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 newsTitle.textContent = `Noticia: ${result.filename.replace('.pdf', '').replace(/_/g, ' ')}`;
 
                 const pageLink = document.createElement('a');
-
-                // --- INICIO DE LA CORRECCIÓN ---
                 
-                // 1. Corregimos la ruta eliminando la parte extra "Repositorio_Medicina/"
+                // Corregimos la ruta eliminando la parte extra "Repositorio_Medicina/"
                 const correctedPath = result.url.replace('Repositorio_Medicina/', '');
                 
-                // 2. Creamos la URL absoluta y completa hacia el PDF en GitHub Pages
-                const absolutePdfUrl = `${githubPagesBaseUrl}${correctedPath}`;
-
-                // 3. Codificamos la URL completa para el visor
-                const encodedPdfUrl = encodeURIComponent(absolutePdfUrl);
-                
-                // --- FIN DE LA CORRECCIÓN ---
+                // Codificamos la ruta relativa para pasarla al visor local.
+                const encodedPdfUrl = encodeURIComponent(correctedPath);
 
                 pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#page=${result.pageNumber}`;
                 pageLink.target = "_blank";
