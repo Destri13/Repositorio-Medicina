@@ -1,28 +1,73 @@
-import os
-import json
-from pypdf import PdfReader
+const fetch = require('node-fetch');
 
-base_path = "Repositorio Medicina"  # Asegúrate de que el nombre coincida con tu carpeta
+let cachedIndex = null;
 
-search_index = {}
+async function loadAndCacheIndex() {
+  if (cachedIndex) {
+    return;
+  }
 
-for root, dirs, files in os.walk(base_path):
-    for file in files:
-        if file.lower().endswith(".pdf"):
-            try:
-                path = os.path.join(root, file)
-                relative_path = os.path.relpath(path, base_path).replace("\\", "/")
-                reader = PdfReader(path)
-                pages = {}
-                for i, page in enumerate(reader.pages):
-                    text = page.extract_text() or ""
-                    pages[f"page_{i+1}"] = text.strip()
-                search_index[file] = {
-                    "url": relative_path,
-                    "pages": pages
-                }
-            except Exception as e:
-                print(f"Error procesando {file}: {e}")
+  const indexUrl = `${process.env.URL}/search_index.json`;  
+  console.log(`Índice no está en caché. Descargando desde: ${indexUrl}`);
+  
+  try {
+    const response = await fetch(indexUrl);
+    if (!response.ok) {
+      throw new Error(`Fallo al descargar el índice: ${response.statusText}`);
+    }
+    cachedIndex = await response.json();
+    console.log('Índice descargado y guardado en caché correctamente.');
+  } catch (error) {
+    console.error('Error crítico al cargar el índice:', error);
+    cachedIndex = null;
+  }
+}
 
-with open("search_index.json", "w", encoding="utf-8") as f:
-    json.dump(search_index, f, ensure_ascii=False, indent=2)
+exports.handler = async (event) => {
+  await loadAndCacheIndex();
+
+  if (!cachedIndex) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'No se pudo cargar el índice de búsqueda en el servidor.' }),
+    };
+  }
+  
+  const query = event.queryStringParameters.q?.trim().toLowerCase();
+
+  if (!query) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Falta el término de búsqueda' }),
+    };
+  }
+
+  const searchTerms = query.split(/\s+/).filter(term => term.length > 0);
+  let results = [];
+
+  for (const filename in cachedIndex) {
+    const fileData = cachedIndex[filename];
+    for (const pageNum in fileData.pages) {
+      const pageText = fileData.pages[pageNum].toLowerCase();
+      if (searchTerms.every(term => pageText.includes(term))) {
+        results.push({
+          filename: filename,
+          url: fileData.url,
+          pageNumber: pageNum.replace('page_', '')
+        });
+      }
+    }
+  }
+
+  results.sort((a, b) => {
+      if (a.filename !== b.filename) {
+          return a.filename.localeCompare(b.filename);
+      }
+      return parseInt(a.pageNumber) - parseInt(b.pageNumber);
+  });
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(results),
+  };
+};
