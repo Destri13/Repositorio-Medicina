@@ -79,35 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const pageLink = document.createElement('a');
                 
-                // 1. Corregimos la ruta en el JSON (quitamos "Repositorio_Medicina/")
-                const correctedPath = result.url.replace('Repositorio_Medicina/', '');
-                
-                // 2. Le decimos al visor que suba dos carpetas para encontrar la ruta correcta
-                const pathForViewer = `../../${correctedPath}`;
+                // La ruta del JSON (ej: "Repositorio_Medicina/Semiologia/...") es correcta.
+                // Simplemente le decimos al visor que suba dos niveles (../../) para encontrarla.
+                const pathForViewer = `../../${result.url}`;
 
-                // 3. Codificamos la ruta final para la URL
                 const encodedPdfUrl = encodeURIComponent(pathForViewer);
 
-                pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#page=${result.pageNumber}`;
+                pageLink.href = `<span class="math-inline">\{visorBaseUrl\}?file\=</span>{encodedPdfUrl}#page=${result.pageNumber}`;
                 pageLink.target = "_blank";
-                pageLink.rel = "noopener noreferrer";
-                pageLink.textContent = `Ver página ${result.pageNumber}`;
-
-                resultItem.appendChild(newsTitle);
-                resultItem.appendChild(pageLink);
-                searchResultsDiv.appendChild(resultItem);
-            });
-        } else {
-            noResultsMessage.style.display = 'block';
-        }
-    }
-
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            performSearch();
-        }
-    });
-
-    loadSearchIndex();
-});
+                pageLink.rel = "noopener
