@@ -47,13 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const pathForViewer = `../../${result.url}`;
                     const encodedPdfUrl = encodeURIComponent(pathForViewer);
                     
-                    // --- INICIO DEL CAMBIO FINAL ---
-                    // 
-                    const encodedQuery = encodeURIComponent(query);
+                    // --- INICIO DEL CAMBIO ---
+                    // Envolvemos la frase de búsqueda entre comillas para forzar una búsqueda de frase exacta
+                    const encodedQuery = encodeURIComponent(`"${query}"`);
                     
-                    // 
+                    // Creamos el nuevo enlace con el parámetro #search=
                     pageLink.href = `${visorBaseUrl}?file=${encodedPdfUrl}#search=${encodedQuery}&page=${result.pageNumber}`;
-                    // --- FIN DEL CAMBIO FINAL ---
+                    // --- FIN DEL CAMBIO ---
 
                     pageLink.target = "_blank";
                     pageLink.rel = "noopener noreferrer";
